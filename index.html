@@ -119,7 +119,7 @@
 
       try {
         if (typeof ethers === 'undefined') {
-          throw new Error("Ethers.js library is not loaded.");
+          showDebug("Ethers.js library is not loaded.");
         }
         
         showDebug("Initializing faucet interface...");
