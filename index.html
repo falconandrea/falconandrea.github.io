@@ -52,6 +52,8 @@
 
   <script>
     $(document).ready(async function() {
+      $('#requestFunds').hide();
+
       const showMessage = (msg, type = 'info') => {
         const colors = {
           'success': 'bg-green-50 text-green-800 border-green-200',
@@ -150,6 +152,10 @@
               showDebug(`Wallet connected: ${account}`);
               showMessage(`Wallet connected: ${account}`, 'success');
               $('#requestFunds').prop('disabled', false);
+              $('#requestFunds').show();
+
+              // Update button to show wallet address instead of "Connect Wallet"
+              $('#connectWallet').text(account).removeClass('bg-green-600').addClass('bg-gray-600').prop('disabled', true);
 
               // Check for correct network
               if (network.chainId !== 763373) {
