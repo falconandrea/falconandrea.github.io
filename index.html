@@ -121,7 +121,7 @@
         showDebug("Initializing faucet interface...");
 
         if (typeof window.ethereum !== 'undefined') {
-          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const provider = new ethers.BrowserProvider(window.ethereum);
 
           const network = await provider.getNetwork();
           showDebug(`Connected to network: Chain ID ${network.chainId}`);
