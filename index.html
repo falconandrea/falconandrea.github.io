@@ -119,7 +119,8 @@
 
       try {
         showDebug("Initializing faucet interface...");
-        const provider = new ethers.JsonRpcProvider('https://rpc-gel-sepolia.inkonchain.com/');
+        const provider = new ethers.providers.Web3Provider(window.ethereum); 
+        const signer = provider.getSigner();
         
         const network = await provider.getNetwork();
         showDebug(`Connected to network: Chain ID ${network.chainId}`);
@@ -145,7 +146,7 @@
           if (typeof window.ethereum !== 'undefined') {
             try {
               const [account] = await window.ethereum.request({ method: 'eth_requestAccounts' });
-              signer = new ethers.providers.Web3Provider(window.ethereum).getSigner();
+              signer = signer;
               showDebug(`Wallet connected: ${account}`);
               showMessage(`Wallet connected: ${account}`, 'success');
               $('#requestFunds').prop('disabled', false);
