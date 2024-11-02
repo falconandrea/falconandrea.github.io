@@ -175,7 +175,7 @@
           });
 
           $('#requestFunds').click(async function() {
-            const address = await signer.getAddress();
+            const address = await provider.getSigner().address;
             
             setLoading(true);
             showMessage("", 'info');
