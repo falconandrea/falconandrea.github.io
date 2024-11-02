@@ -119,8 +119,7 @@
 
       try {
         showDebug("Initializing faucet interface...");
-        const provider = new ethers.providers.Web3Provider(window.ethereum); 
-        const signer = provider.getSigner();
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
         
         const network = await provider.getNetwork();
         showDebug(`Connected to network: Chain ID ${network.chainId}`);
@@ -146,7 +145,7 @@
           if (typeof window.ethereum !== 'undefined') {
             try {
               const [account] = await window.ethereum.request({ method: 'eth_requestAccounts' });
-              signer = signer.connect(provider);
+              signer = new ethers.providers.Web3Provider(window.ethereum).getSigner();
               showDebug(`Wallet connected: ${account}`);
               showMessage(`Wallet connected: ${account}`, 'success');
               $('#requestFunds').prop('disabled', false);
