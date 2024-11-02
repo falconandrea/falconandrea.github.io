@@ -118,102 +118,115 @@
       let signer;
 
       try {
-        if (typeof ethers === 'undefined') {
-          showDebug("Ethers.js library is not loaded.");
-        }
-        
         showDebug("Initializing faucet interface...");
-        const provider = new ethers.providers.JsonRpcProvider("https://rpc-gel-sepolia.inkonchain.com/");
-        
-        const network = await provider.getNetwork();
-        showDebug(`Connected to network: Chain ID ${network.chainId}`);
 
-        async function getContractBalance() {
-          try {
-            const balance = await provider.getBalance(contractAddress);
-            return ethers.formatEther(balance);
-          } catch (error) {
-            showDebug(`Balance fetch error: ${error.message}`);
-            return "Error";
+        if (typeof window.ethereum !== 'undefined') {
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+          const network = await provider.getNetwork();
+          showDebug(`Connected to network: Chain ID ${network.chainId}`);
+
+          async function getContractBalance() {
+            try {
+              const balance = await provider.getBalance(contractAddress);
+              return ethers.formatEther(balance);
+            } catch (error) {
+              showDebug(`Balance fetch error: ${error.message}`);
+              return "Error";
+            }
           }
-        }
 
-        async function updateBalance() {
-          const balance = await getContractBalance();
-          $('#balance').text(balance);
-        }
+          async function updateBalance() {
+            const balance = await getContractBalance();
+            $('#balance').text(balance);
+          }
 
-        await updateBalance();
+          await updateBalance();
 
-        $('#connectWallet').click(async function() {
-          if (typeof window.ethereum !== 'undefined') {
+          $('#connectWallet').click(async function() {
             try {
               const [account] = await window.ethereum.request({ method: 'eth_requestAccounts' });
-              signer = new ethers.providers.Web3Provider(window.ethereum).getSigner();
+              signer = provider.getSigner();
               showDebug(`Wallet connected: ${account}`);
               showMessage(`Wallet connected: ${account}`, 'success');
               $('#requestFunds').prop('disabled', false);
+
+              // Check for correct network
+              if (network.chainId !== 763373) {
+                try {
+                  await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0xbafef5' }] // 763373 in hex
+                  });
+                  showDebug("Switched to the correct network.");
+                  showMessage("Switched to the correct network.", 'success');
+                } catch (switchError) {
+                  showDebug(`Network switch error: ${switchError.message}`);
+                  showMessage(`Failed to switch network: ${switchError.message}`, 'error');
+                }
+              }
             } catch (error) {
               showDebug(`Wallet connection error: ${error.message}`);
               showMessage(`Failed to connect wallet: ${error.message}`, 'error');
             }
-          } else {
-            showDebug("No Ethereum wallet found");
-            showMessage("Please install MetaMask or another Ethereum wallet", 'error');
-          }
-        });
+          });
 
-        $('#requestFunds').click(async function() {
-          const address = await signer.getAddress();
-          
-          setLoading(true);
-          showMessage("", 'info');
-          
-          try {
-            showDebug(`Initiating token request for: ${address}`);
-            showMessage("Preparing transaction...", 'info');
+          $('#requestFunds').click(async function() {
+            const address = await signer.getAddress();
+            
+            setLoading(true);
+            showMessage("", 'info');
+            
+            try {
+              showDebug(`Initiating token request for: ${address}`);
+              showMessage("Preparing transaction...", 'info');
 
-            const gasPrice = await provider.getFeeData();
-            showDebug(`Current gas price: ${gasPrice.gasPrice.toString()}`);
+              const gasPrice = await provider.getFeeData();
+              showDebug(`Current gas price: ${gasPrice.gasPrice.toString()}`);
 
-            const tx = await contract.requestTokens(address, {
-              gasLimit: 100000,
-              maxFeePerGas: gasPrice.maxFeePerGas,
-              maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas
-            });
+              const contract = new ethers.Contract(contractAddress, contractAbi, signer);
 
-            showMessage(
-              `<p>Transaction sent!</p>
-               <p class="text-xs mt-2">Hash: ${tx.hash}</p>`, 
-              'info'
-            );
-            
-            showDebug(`Transaction hash: ${tx.hash}`);
-            
-            const receipt = await tx.wait();
-            showDebug(`Transaction confirmed in block: ${receipt.blockNumber}`);
-            
-            showMessage(
-              `<p>✅ Tokens sent successfully!</p>
-               <p class="text-xs mt-2">Block: ${receipt.blockNumber}</p>`, 
-              'success'
-            );
-            
-            await updateBalance();
-          } catch (error) {
-            showDebug(`Error: ${error.message}`);
-            
-            let errorMessage = error.message;
-            if (error.message.includes("You can only request tokens once every 24 hours")) {
-              errorMessage = "This address has already requested tokens in the last 24 hours. Please try again later.";
+              const tx = await contract.requestTokens(address, {
+                gasLimit: 100000,
+                maxFeePerGas: gasPrice.maxFeePerGas,
+                maxPriorityFeePerGas: gasPrice.maxPriorityFeePerGas
+              });
+
+              showMessage(
+                `<p>Transaction sent!</p>
+                 <p class="text-xs mt-2">Hash: ${tx.hash}</p>`, 
+                'info'
+              );
+              
+              showDebug(`Transaction hash: ${tx.hash}`);
+              
+              const receipt = await tx.wait();
+              showDebug(`Transaction confirmed in block: ${receipt.blockNumber}`);
+              
+              showMessage(
+                `<p>✅ Tokens sent successfully!</p>
+                 <p class="text-xs mt-2">Block: ${receipt.blockNumber}</p>`, 
+                'success'
+              );
+              
+              await updateBalance();
+            } catch (error) {
+              showDebug(`Error: ${error.message}`);
+              
+              let errorMessage = error.message;
+              if (error.message.includes("You can only request tokens once every 24 hours")) {
+                errorMessage = "This address has already requested tokens in the last 24 hours. Please try again later.";
+              }
+              
+              showMessage(errorMessage, 'error');
+            } finally {
+              setLoading(false);
             }
-            
-            showMessage(errorMessage, 'error');
-          } finally {
-            setLoading(false);
-          }
-        });
-
+          });
+        } else {
+          showDebug("No Ethereum wallet found");
+          showMessage("Please install an Ethereum wallet to use this faucet.", 'error');
+        }
       } catch (error) {
         showDebug(`Initialization error: ${error.message}`);
         showMessage("Failed to initialize faucet interface. Please refresh the page.", 'error');
