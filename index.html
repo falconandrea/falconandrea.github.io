@@ -122,6 +122,7 @@
 
         if (typeof window.ethereum !== 'undefined') {
           const provider = new ethers.BrowserProvider(window.ethereum);
+          signer = await provider.getSigner();
 
           const network = await provider.getNetwork();
           showDebug(`Connected to network: Chain ID ${network.chainId}`);
@@ -146,7 +147,6 @@
           $('#connectWallet').click(async function() {
             try {
               const [account] = await window.ethereum.request({ method: 'eth_requestAccounts' });
-              signer = provider.getSigner();
               showDebug(`Wallet connected: ${account}`);
               showMessage(`Wallet connected: ${account}`, 'success');
               $('#requestFunds').prop('disabled', false);
@@ -175,7 +175,7 @@
           });
 
           $('#requestFunds').click(async function() {
-            const address = await provider.getSigner().address;
+            const address = await signer.address;
             
             setLoading(true);
             showMessage("", 'info');
@@ -187,7 +187,7 @@
               const gasPrice = await provider.getFeeData();
               showDebug(`Current gas price: ${gasPrice.gasPrice.toString()}`);
 
-              const contract = new ethers.Contract(contractAddress, contractAbi, provider.getSigner());
+              const contract = new ethers.Contract(contractAddress, contractAbi, signer);
 
               const tx = await contract.requestTokens(address, {
                 gasLimit: 100000,
