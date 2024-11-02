@@ -155,7 +155,7 @@
               $('#requestFunds').show();
 
               // Update button to show wallet address instead of "Connect Wallet"
-              $('#connectWallet').text(account).removeClass('bg-green-600').addClass('bg-gray-600').prop('disabled', true);
+              $('#connectWallet').hide();
 
               // Check for correct network
               if (network.chainId !== 763373) {
