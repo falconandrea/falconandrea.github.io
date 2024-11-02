@@ -118,8 +118,12 @@
       let signer;
 
       try {
+        if (typeof ethers === 'undefined') {
+          throw new Error("Ethers.js library is not loaded.");
+        }
+        
         showDebug("Initializing faucet interface...");
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const provider = new ethers.providers.JsonRpcProvider("https://rpc-gel-sepolia.inkonchain.com/");
         
         const network = await provider.getNetwork();
         showDebug(`Connected to network: Chain ID ${network.chainId}`);
