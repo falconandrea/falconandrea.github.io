@@ -153,6 +153,8 @@
 
               // Check for correct network
               if (network.chainId !== 763373) {
+                try { await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{ chainId: '0xbafef5', chainName: 'INK Testnet', rpcUrls: ['https://rpc-gel-sepolia.inkonchain.com'], nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }, blockExplorerUrls: ['https://explorer-sepolia.inkonchain.com'] }] }); showDebug("New chain added successfully."); showMessage("New chain added successfully.", 'success'); } catch (addError) { showDebug(`Error adding new chain: ${addError.message}`); showMessage(`Failed to add new chain: ${addError.message}`, 'error'); }
+
                 try {
                   await window.ethereum.request({
                     method: 'wallet_switchEthereumChain',
