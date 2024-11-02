@@ -153,12 +153,14 @@
 
               // Check for correct network
               if (network.chainId !== 763373) {
-                try { await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{ chainId: ethers.utils.toBeHex(763373), chainName: 'INK Testnet', rpcUrls: ['https://rpc-gel-sepolia.inkonchain.com'], nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }, blockExplorerUrls: ['https://explorer-sepolia.inkonchain.com'] }] }); showDebug("New chain added successfully."); showMessage("New chain added successfully.", 'success'); } catch (addError) { showDebug(`Error adding new chain: ${addError.message}`); showMessage(`Failed to add new chain: ${addError.message}`, 'error'); }
+                const chainIdBigNumber = ethers.BigNumber.from(763373);
+                const chainIdHex = value.toHexString();
+                try { await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{ chainId: chainIdHex, chainName: 'INK Testnet', rpcUrls: ['https://rpc-gel-sepolia.inkonchain.com'], nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }, blockExplorerUrls: ['https://explorer-sepolia.inkonchain.com'] }] }); showDebug("New chain added successfully."); showMessage("New chain added successfully.", 'success'); } catch (addError) { showDebug(`Error adding new chain: ${addError.message}`); showMessage(`Failed to add new chain: ${addError.message}`, 'error'); }
 
                 try {
                   await window.ethereum.request({
                     method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: ethers.utils.toBeHex(763373) }]
+                    params: [{ chainId: chainIdHex }]
                   });
                   showDebug("Switched to the correct network.");
                   showMessage("Switched to the correct network.", 'success');
