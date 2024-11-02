@@ -146,7 +146,7 @@
           if (typeof window.ethereum !== 'undefined') {
             try {
               const [account] = await window.ethereum.request({ method: 'eth_requestAccounts' });
-              signer = signer;
+              signer = signer.connect(provider);
               showDebug(`Wallet connected: ${account}`);
               showMessage(`Wallet connected: ${account}`, 'success');
               $('#requestFunds').prop('disabled', false);
